@@ -6,13 +6,14 @@
     "start": "bun run src/index.ts"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/request-promise-native": "^1.0.21"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "bring-shopping": "^1.5.1",
+    "sharp": "^0.33.2",
     "zod": "^3.22.4"
   }
 }
