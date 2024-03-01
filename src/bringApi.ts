@@ -20,7 +20,7 @@ import {
   type LoadListsResponse,
   type ItemDetailsResponse,
   itemDetailsResponseSchema,
-} from "./bringZodTypes"
+} from "./bringZodTypes.ts"
 
 const formData = (data: Record<string, string>): FormData => {
   const form = new FormData()

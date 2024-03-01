@@ -1,8 +1,9 @@
 import sharp from "sharp"
-import { config } from "../config"
-import { Bring } from "./bringApi"
-import type { GetItemsResponseEntry, LoadListsEntry } from "./bringZodTypes"
-import { lookupProduct } from "./lookupProduct"
+import { config } from "../config.ts"
+import { Bring } from "./bringApi.ts"
+import type { GetItemsResponseEntry, LoadListsEntry } from "./bringZodTypes.ts"
+import { lookupProduct } from "./lookupProduct.ts"
+import { serialScannerReader } from "./serialScannerReader.ts"
 
 type ItemOnList = {
   listUuid: string
@@ -99,7 +100,11 @@ const main = async () => {
 
   await bring.login()
 
-  await addItem(bring, "6920075776096")
+  const port = serialScannerReader('/dev/serial-scanner', async (eanCode) => {
+    console.log(`EAN code scanned: ${eanCode}`)
+  })
+
+  // await addItem(bring, "6920075776096")
 }
 
 main()

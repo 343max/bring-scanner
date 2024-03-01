@@ -1,6 +1,6 @@
 import { z } from "zod"
-import { config } from "../config"
-import { productSchema, type ProductSchema } from "./barcodeLookupResponse"
+import { config } from "../config.ts"
+import { productSchema, type ProductSchema } from "./barcodeLookupResponse.ts"
 
 export const lookupProduct = async (barcode: string): Promise<ProductSchema | null> => {
   if (config.barcodelookup_com.fakeResponse) {
