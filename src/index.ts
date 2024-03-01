@@ -63,18 +63,23 @@ const addItem = async (bring: Bring, eanCode: string) => {
     }
 
     const product = await lookupProduct(eanCode)
+    const eanTag = `EAN:${eanCode}`
     if (product === null) {
       console.log(`Product with EAN code ${eanCode} not found. Creating generic item.`)
       const productName = `${config.bringConfig.unknownProductName} ${eanCode.slice(-4)}`
-      await bring.saveItem(newItemListUuid, productName, `EAN:${eanCode}`)
+      const googleUrl = `https://www.google.com/search?q=${eanCode}`
+      await bring.saveItem(newItemListUuid, productName, `${googleUrl} ${eanTag}`)
     } else {
       console.log(
         `Product ${product.title} by ${product.manufacturer} with EAN code ${eanCode} found. Adding to unknown list.`
       )
       const productName = `${product.title} (${product.manufacturer})`
-      const googleUrl = `https://www.google.com/search?q=${eanCode}`
-      const eanTag = `EAN:${eanCode}`
-      await bring.saveItem(newItemListUuid, productName, `${googleUrl} ${eanTag}`)
+      await bring.saveItem(newItemListUuid, productName, eanTag)
+      const imageUrl = product.images[0]
+      if (imageUrl) {
+        const { uuid } = await bring.addItemUuid(newItemListUuid, productName)
+        await uploadBringImageFromUrl(bring, uuid, imageUrl)
+      }
     }
   }
 }
@@ -89,35 +94,12 @@ const uploadBringImageFromUrl = async (bring: Bring, itemUuid: string, imageUrl:
   await bring.saveItemImage(itemUuid, new Blob([buffer], { type: "image/jpeg" }) as Blob)
 }
 
-const fakeBionelaEan = "4260019320537"
-const erdnussmusEan = "4006040000211"
-// const erdnussmusEan = "4006040000211"
-const fakeBanane = "1234"
-
 const main = async () => {
   const bring = new Bring(config.bringOptions)
 
   await bring.login()
 
-  // await addItem(bring, erdnussmusEan)
-
-  await uploadBringImageFromUrl(
-    bring,
-    "ed1f34f3-6309-49db-a7e7-311642d69c6a",
-    "https://images.barcodelookup.com/23217/232177433-1.jpg"
-  )
-
-  // const lists = await bring.loadLists()
-  // console.log(lists)
-
-  // const items = await bring.getItems(lists.lists[0].listUuid)
-  // console.log(items)
-
-  // const detailedItems = await bring.getItemsDetails(lists.lists[0].listUuid)
-  // console.log(detailedItems)
-
-  // const product = await lookupProduct("4311501005262")
-  // console.log(product)
+  await addItem(bring, "6920075776096")
 }
 
 main()

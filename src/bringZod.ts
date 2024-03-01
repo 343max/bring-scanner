@@ -125,3 +125,15 @@ export const getPendingInvitationsResponseSchema = z.object({
 })
 
 export type GetPendingInvitationsResponse = z.infer<typeof getPendingInvitationsResponseSchema>
+
+export const itemDetailsResponseSchema = z.object({
+  uuid: z.string(),
+  itemId: z.string(),
+  listUuid: z.string(),
+  userIconItemId: z.string(),
+  userSectionId: z.string(),
+  assignedTo: z.string(),
+  imageUrl: z.string(),
+})
+
+export type ItemDetailsResponse = z.infer<typeof itemDetailsResponseSchema>

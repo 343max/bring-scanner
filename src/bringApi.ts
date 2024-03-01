@@ -18,7 +18,17 @@ import {
   type GetUserSettingsResponse,
   type LoadCatalogResponse,
   type LoadListsResponse,
+  type ItemDetailsResponse,
+  itemDetailsResponseSchema,
 } from "./bringZod"
+
+const formData = (data: Record<string, string>): FormData => {
+  const form = new FormData()
+  for (const [key, value] of Object.entries(data)) {
+    form.append(key, value)
+  }
+  return form
+}
 
 export class Bring {
   private readonly mail: string
@@ -156,6 +166,23 @@ export class Bring {
     }
   }
 
+  async addItemUuid(listUuid: string, itemId: string): Promise<ItemDetailsResponse> {
+    try {
+      const response = await fetch(`${this.url}bringlistitemdetails`, {
+        method: "POST",
+        headers: this.headers,
+        body: formData({
+          itemId,
+          listUuid,
+        }),
+      })
+      const data = await response.json()
+      return itemDetailsResponseSchema.parse(data)
+    } catch (e: any) {
+      throw new Error(`Cannot add item ${itemId} to ${listUuid}: ${e.message}`)
+    }
+  }
+
   /**
    *   Save an image to an item
    *
@@ -179,10 +206,8 @@ export class Bring {
       })
 
       const data = await response.json()
-      console.log(response.status, data)
       return z.object({ imageUrl: z.string() }).parse(data).imageUrl
     } catch (e: any) {
-      throw e
       throw new Error(`Cannot save item image ${itemUuid}: ${e.message}`)
     }
   }
