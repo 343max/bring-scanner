@@ -1,7 +1,7 @@
 import sharp from "sharp"
 import { config } from "../config"
 import { Bring } from "./bringApi"
-import type { GetItemsResponseEntry, LoadListsEntry } from "./bringZod"
+import type { GetItemsResponseEntry, LoadListsEntry } from "./bringZodTypes"
 import { lookupProduct } from "./lookupProduct"
 
 type ItemOnList = {
