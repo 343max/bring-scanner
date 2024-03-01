@@ -70,6 +70,7 @@ const addItem = async (bring: Bring, eanCode: string) => {
       const productName = `${config.bringConfig.unknownProductName} ${eanCode.slice(-4)}`
       const googleUrl = `https://www.google.com/search?q=${eanCode}`
       await bring.saveItem(newItemListUuid, productName, `${googleUrl} ${eanTag}`)
+      console.log("done")
     } else {
       console.log(
         `Product ${product.title} by ${product.manufacturer} with EAN code ${eanCode} found. Adding to unknown list.`
@@ -78,9 +79,11 @@ const addItem = async (bring: Bring, eanCode: string) => {
       await bring.saveItem(newItemListUuid, productName, eanTag)
       const imageUrl = product.images[0]
       if (imageUrl) {
+        console.log("adding image...")
         const { uuid } = await bring.addItemUuid(newItemListUuid, productName)
         await uploadBringImageFromUrl(bring, uuid, imageUrl)
       }
+      console.log("done")
     }
   }
 }
@@ -100,11 +103,16 @@ const main = async () => {
 
   await bring.login()
 
-  const port = serialScannerReader('/dev/serial-scanner', async (eanCode) => {
+  const port = serialScannerReader("/dev/scanner", async (eanCode) => {
     console.log(`EAN code scanned: ${eanCode}`)
+    await addItem(bring, eanCode)
   })
 
-  // await addItem(bring, "6920075776096")
+  console.log("Ready to scan!")
+
+  // Keep the script running until it is killed
+  process.stdin.resume()
+  process.stdin.on("data", () => {})
 }
 
 main()

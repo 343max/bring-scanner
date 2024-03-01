@@ -195,10 +195,6 @@ export class Bring {
       const formData = new FormData()
       formData.append("imageData", image, "image.jpg")
 
-      formData.forEach((value, key) => {
-        console.log(`${key}: ${value}`)
-      })
-
       const response = await fetch(`${this.url}bringlistitemdetails/${itemUuid}/image`, {
         method: "PUT",
         headers: this.headers,
