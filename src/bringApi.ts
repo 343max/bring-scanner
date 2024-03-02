@@ -20,7 +20,7 @@ import {
   type LoadListsResponse,
   type ItemDetailsResponse,
   itemDetailsResponseSchema,
-} from "./bringZodTypes.ts"
+} from "./bringZodTypes"
 
 const formData = (data: Record<string, string>): FormData => {
   const form = new FormData()
@@ -45,7 +45,6 @@ export class Bring {
   }
   public name?: string
   private bearerToken?: string
-  private refreshToken?: string
   private putHeaders?: {
     Authorization?: string
     "X-BRING-USER-UUID"?: string
@@ -87,7 +86,6 @@ export class Bring {
       this.name = data.name
       this.uuid = data.uuid
       this.bearerToken = data.access_token
-      this.refreshToken = data.refresh_token
 
       this.headers[`X-BRING-USER-UUID`] = this.uuid
       this.headers[`Authorization`] = `Bearer ${this.bearerToken}`
@@ -151,7 +149,7 @@ export class Bring {
     try {
       const response = await fetch(`${this.url}bringlists/${listUuid}`, {
         method: "PUT",
-        headers: this.putHeaders,
+        headers: this.putHeaders ?? {},
         body: new URLSearchParams({
           purchase: itemName,
           recently: "",
@@ -219,7 +217,7 @@ export class Bring {
     try {
       const response = await fetch(`${this.url}bringlists/${listUuid}`, {
         method: "PUT",
-        headers: this.putHeaders,
+        headers: this.putHeaders ?? {},
         body: new URLSearchParams({
           purchase: "",
           recently: "",
@@ -263,7 +261,7 @@ export class Bring {
     try {
       const response = await fetch(`${this.url}bringlists/${listUuid}`, {
         method: "PUT",
-        headers: this.putHeaders,
+        headers: this.putHeaders ?? {},
         body: new URLSearchParams({
           purchase: "",
           recently: itemName,

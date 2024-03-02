@@ -1,9 +1,9 @@
 import { SerialPort } from "serialport"
 import { ReadlineParser } from "@serialport/parser-readline"
-import { config } from "../config.ts"
+import { config } from "./config"
 
 export const serialScannerReader = (serialPort: string, onEAN: (eanCode: string) => Promise<void>) => {
-  const parser = new ReadlineParser({ delimiter: config.scanner.delimiter })
+  const parser = new ReadlineParser({ delimiter: config.SCANNER_DELIMITER })
 
   const setupPort = () => {
     const port = new SerialPort({

@@ -1,9 +1,9 @@
 import sharp from "sharp"
-import { config } from "../config.ts"
-import { Bring } from "./bringApi.ts"
-import type { GetItemsResponseEntry, LoadListsEntry } from "./bringZodTypes.ts"
-import { lookupProduct } from "./lookupProduct.ts"
-import { serialScannerReader } from "./serialScannerReader.ts"
+import { config } from "./config"
+import { Bring } from "./bringApi"
+import type { GetItemsResponseEntry, LoadListsEntry } from "./bringZodTypes"
+import { lookupProduct } from "./lookupProduct"
+import { serialScannerReader } from "./serialScannerReader"
 
 type ItemOnList = {
   listUuid: string
@@ -56,10 +56,10 @@ const addItem = async (bring: Bring, eanCode: string) => {
   } else {
     console.log(`Item with EAN code ${eanCode} not found and needs to be added`)
 
-    const newItemListUuid = lists.find((list) => list.name === config.bringConfig.newItemsListName)?.listUuid
+    const newItemListUuid = lists.find((list) => list.name === config.BRING_NEW_ITEMS_LIST)?.listUuid
 
     if (newItemListUuid === undefined) {
-      console.error(`List with name ${config.bringConfig.newItemsListName} not found! Please create it!`)
+      console.error(`List with name ${config.BRING_NEW_ITEMS_LIST} not found! Please create it!`)
       return
     }
 
@@ -67,15 +67,18 @@ const addItem = async (bring: Bring, eanCode: string) => {
     const eanTag = `EAN:${eanCode}`
     if (product === null) {
       console.log(`Product with EAN code ${eanCode} not found. Creating generic item.`)
-      const productName = `${config.bringConfig.unknownProductName} ${eanCode.slice(-4)}`
+      const productName = `${config.BRING_UNKNOWN_PRODUC_NAME} ${eanCode.slice(-4)}`
       const googleUrl = `https://www.google.com/search?q=${eanCode}`
       await bring.saveItem(newItemListUuid, productName, `${googleUrl} ${eanTag}`)
       console.log("done")
     } else {
+      const manufacturer = product.manufacturer.length > 0 ? product.manufacturer.replace(/^` /, "") : null
       console.log(
-        `Product ${product.title} by ${product.manufacturer} with EAN code ${eanCode} found. Adding to unknown list.`
+        `Product ${product.title} ${
+          manufacturer != null ? `by ${manufacturer} ` : ""
+        }with EAN code ${eanCode} found. Adding to unknown list.`
       )
-      const productName = `${product.title} (${product.manufacturer})`
+      const productName = `${product.title} ${manufacturer != null ? ` (${manufacturer})` : ""}`
       await bring.saveItem(newItemListUuid, productName, eanTag)
       const imageUrl = product.images[0]
       if (imageUrl) {
@@ -99,10 +102,11 @@ const uploadBringImageFromUrl = async (bring: Bring, itemUuid: string, imageUrl:
 }
 
 const main = async () => {
-  const bring = new Bring(config.bringOptions)
+  const bring = new Bring({ mail: config.BRING_EMAIL, password: config.BRING_PASSWORD })
 
   await bring.login()
 
+  // @ts-expect-error
   const port = serialScannerReader("/dev/scanner", async (eanCode) => {
     console.log(`EAN code scanned: ${eanCode}`)
     await addItem(bring, eanCode)
