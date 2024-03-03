@@ -58,15 +58,14 @@ export const anylistClient = async (
       return userData.shoppingListsResponse?.newLists?.map((list) => list.items ?? []).flat() ?? []
     },
     setListItemChecked: async (listId: string, itemId: string, checked: boolean) => {
-      const operation = new pcov.proto.PBListOperation()
+      const operation = new pcov.proto.PBListOperation({
+        metadata: opertationMetadata("set-list-item-checked"),
+        listId: listId,
+        listItemId: itemId,
+        updatedValue: checked ? "y" : "n",
+      })
 
-      operation.metadata = opertationMetadata("set-list-item-checked")
-      operation.listId = listId
-      operation.listItemId = itemId
-      operation.updatedValue = checked ? "y" : "n"
-
-      const operationList = new pcov.proto.PBListOperationList()
-      operationList.operations = [operation]
+      const operationList = new pcov.proto.PBListOperationList({ operations: [operation] })
 
       const encodedOperationList = pcov.proto.PBListOperationList.encode(operationList).finish()
 
