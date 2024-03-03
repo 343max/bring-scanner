@@ -45,10 +45,8 @@ export const anylistClient = async (
   const opertationMetadata = (handlerId: string): pcov.proto.PBOperationMetadata => {
     const metadata = new pcov.proto.PBOperationMetadata()
     metadata.operationId = miniUuid()
-    // metadata.operationId = "5c710214c02040488d6f42cf81d81741"
     metadata.userId = userId
     metadata.handlerId = handlerId
-    console.log(metadata.operationId)
     return metadata
   }
 
@@ -65,15 +63,10 @@ export const anylistClient = async (
       operation.listItemId = itemId
       operation.updatedValue = checked ? "y" : "n"
 
-      // const encodedOperation = pcov.proto.PBListOperation.encode(operation).finish()
-
       const operationList = new pcov.proto.PBListOperationList()
       operationList.operations = [operation]
 
       const encodedOperationList = pcov.proto.PBListOperationList.encode(operationList).finish()
-
-      const operationsString = Buffer.from(encodedOperationList).toString("binary").replace("Â¤", "¤")
-      console.log(operationsString)
 
       await fetch(`${endpoint}data/shopping-lists/update`, {
         method: "POST",
