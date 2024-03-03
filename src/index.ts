@@ -4,6 +4,7 @@ import { config } from "./config"
 // import { serialScannerReader } from "./serialScannerReader"
 import { anylistLogin } from "./anylistLogin"
 import { AnylistClinet } from "./anylistClient"
+// import fs from "fs"
 
 // const main = async () => {
 //   const bring = new Bring({ mail: config.BRING_EMAIL, password: config.BRING_PASSWORD })
@@ -34,6 +35,7 @@ const handleItem = async (client: AnylistClinet, eanCode: string) => {
       console.log(`item ${item.name} is already on the shopping list, uncrossing it`)
       await client.setListItemChecked(item.listId ?? "", item.identifier, false)
     }
+  } else {
   }
 }
 

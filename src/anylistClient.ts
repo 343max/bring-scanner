@@ -8,12 +8,14 @@ const miniUuid = () => uuid.v4().replace(/-/g, "")
 const formData = (data: Record<string, string | Blob>): FormData => {
   const form = new FormData()
   for (const [key, value] of Object.entries(data)) {
-    if (typeof value === "string") {
-      form.append(key, value)
-    } else {
-      form.append(key, value, "")
-    }
+    form.append(key, value)
   }
+  return form
+}
+
+const operationsFormData = (operations: Blob, key = "operations") => {
+  const form = new FormData()
+  form.append(key, operations, "")
   return form
 }
 
@@ -43,11 +45,11 @@ export const anylistClient = async (
   }
 
   const opertationMetadata = (handlerId: string): pcov.proto.PBOperationMetadata => {
-    const metadata = new pcov.proto.PBOperationMetadata()
-    metadata.operationId = miniUuid()
-    metadata.userId = userId
-    metadata.handlerId = handlerId
-    return metadata
+    return new pcov.proto.PBOperationMetadata({
+      operationId: miniUuid(),
+      userId,
+      handlerId,
+    })
   }
 
   return {
@@ -71,8 +73,30 @@ export const anylistClient = async (
       await fetch(`${endpoint}data/shopping-lists/update`, {
         method: "POST",
         headers,
-        body: formData({ operations: new Blob([encodedOperationList]) }),
+        body: operationsFormData(new Blob([encodedOperationList])),
       })
+    },
+    addItem: async (listId: string, eanCode: string) => {
+      const itemId = miniUuid()
+
+      const operation = new pcov.proto.PBListOperation({})
+      operation.metadata = opertationMetadata("add-shopping-list-item")
+      operation.listId = listId
+      operation.listItemId = listId
+      // operation.listItem = new pcov.proto.ListItem({})
+    },
+
+    uploadImage: async (image: Blob): Promise<string> => {
+      const imageId = miniUuid()
+      const response = await fetch(`${endpoint}data/photos/upload`, {
+        method: "POST",
+        headers,
+        body: formData({ filename: imageId, file: image }),
+      })
+      if (response.status !== 200) {
+        throw new Error(`Failed to upload image: ${response.status}`)
+      }
+      return imageId
     },
   }
 }
