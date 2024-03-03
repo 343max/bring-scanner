@@ -32,7 +32,7 @@ const handleItem = async (client: AnylistClinet, eanCode: string) => {
       console.log(`item ${item.name} is already on the shopping list, nothing to do`)
     } else {
       console.log(`item ${item.name} is already on the shopping list, uncrossing it`)
-      await client.uncrossListItems(item.listId ?? "", [item.identifier])
+      await client.setListItemChecked(item.listId ?? "", item.identifier, false)
     }
   }
 }
