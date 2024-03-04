@@ -5,10 +5,14 @@ export type AnylistClient = Awaited<ReturnType<typeof anylistClient>>
 
 const miniUuid = () => uuid.v4().replace(/-/g, "")
 
-const formData = (data: Record<string, string | Blob>): FormData => {
+const formData = (data: Record<string, string | { blob: Blob; filename: string }>): FormData => {
   const form = new FormData()
   for (const [key, value] of Object.entries(data)) {
-    form.append(key, value)
+    if (typeof value === "string") {
+      form.append(key, value)
+    } else {
+      form.append(key, value.blob, value.filename)
+    }
   }
   return form
 }
@@ -79,7 +83,7 @@ export const anylistClient = async (
         body: operationsFormData(new Blob([encodedOperationList])),
       })
     },
-    addItem: async (listId: string, item: Omit<pcov.proto.IListItem, "identifier">) => {
+    addItem: async (listId: string, item: Omit<pcov.proto.IListItem, "identifier">): Promise<string> => {
       const itemId = miniUuid()
 
       const operation = new pcov.proto.PBListOperation({
@@ -103,14 +107,34 @@ export const anylistClient = async (
         headers,
         body: operationsFormData(new Blob([encodedOperationList])),
       })
-    },
 
+      return itemId
+    },
+    updateImage: async (listId: string, itemId: string, imageId: string) => {
+      const operation = new pcov.proto.PBListOperation({
+        metadata: opertationMetadata("set-list-item-photo-id"),
+        listId: listId,
+        listItemId: itemId,
+        updatedValue: imageId,
+        originalValue: "",
+      })
+
+      const operationList = new pcov.proto.PBListOperationList({ operations: [operation] })
+
+      const encodedOperationList = pcov.proto.PBListOperationList.encode(operationList).finish()
+
+      await fetch(`${endpoint}data/shopping-lists/update`, {
+        method: "POST",
+        headers,
+        body: operationsFormData(new Blob([encodedOperationList])),
+      })
+    },
     uploadImage: async (image: Blob): Promise<string> => {
       const imageId = miniUuid()
       const response = await fetch(`${endpoint}data/photos/upload`, {
         method: "POST",
         headers,
-        body: formData({ filename: imageId, file: image }),
+        body: formData({ filename: `${imageId}.jpg`, photo: { blob: image, filename: "image.jpg" } }),
       })
       if (response.status !== 200) {
         throw new Error(`Failed to upload image: ${response.status}`)

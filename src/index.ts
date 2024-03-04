@@ -26,18 +26,17 @@ import sharp from "sharp"
 //   process.stdin.on("data", () => {})
 // }
 
-const resizeAndUploadImage = async (bring: AnylistClient, imageUrl: string): Promise<string> => {
+const resizeAndUploadImage = async (client: AnylistClient, imageUrl: string): Promise<string> => {
+  console.log(`${imageUrl}`)
   const response = await fetch(imageUrl)
-  const blob = await response.blob()
-  try {
-    const buffer = await sharp(await blob.arrayBuffer())
-      .resize({ width: 600, height: 600, fit: "inside" })
-      .jpeg({ quality: 60 })
-      .toBuffer()
-    return await bring.uploadImage(new Blob([buffer]))
-  } catch (e) {
-    return await bring.uploadImage(blob)
-  }
+  const originalBlob = await response.blob()
+  const buffer = await sharp(await originalBlob.arrayBuffer())
+    .resize({ width: 600, height: 600, fit: "inside" })
+    .jpeg({ quality: 60 })
+    .toBuffer()
+  const resizedBlob = new Blob([buffer], { type: "image/jpeg" })
+  const uploadBlob = resizedBlob.size > originalBlob.size ? originalBlob : resizedBlob
+  return await client.uploadImage(uploadBlob)
 }
 
 const handleItem = async (client: AnylistClient, eanCode: string) => {
@@ -70,15 +69,16 @@ const handleItem = async (client: AnylistClient, eanCode: string) => {
       })
     } else {
       console.log(`Found product: ${lookup.title}`)
-      const imageIds = await Promise.all(
-        (lookup.images ?? []).map((imageUrl) => resizeAndUploadImage(client, imageUrl))
-      )
-      console.log(imageIds)
-      await client.addItem(listId, {
+      const itemId = await client.addItem(listId, {
         name: `${lookup.title} (${lookup.manufacturer})`,
-        photoIds: imageIds,
         details: `${lookup.description} EAN:${eanCode}`,
       })
+
+      if (lookup.images[0]) {
+        console.log(`Uploading image for ${eanCode}`)
+        const imageId = await resizeAndUploadImage(client, lookup.images[0])
+        await client.updateImage(listId, itemId, imageId)
+      }
     }
   }
 }
