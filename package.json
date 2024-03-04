@@ -2,7 +2,6 @@
   "name": "bring-scanner",
   "scripts": {
     "dev": "dotenv -e .env.development.local ts-node src/index.ts",
-    "dev": "dotenv -e .env.development.local ts-node src/index.ts",
     "compile-protobuf": "mkdir -p src/generated ; pbjs -t static-module -w commonjs -o src/generated/anylist.js anylist.proto && pbts -o src/generated/anylist.d.ts src/generated/anylist.js",
     "compile-protobuf:dist": "mkdir -p dist/generated ; mkdir -p src/generated ; pbjs -t static-module -w commonjs -o dist/generated/anylist.js anylist.proto  && pbts -o src/generated/anylist.d.ts dist/generated/anylist.js"
   },
