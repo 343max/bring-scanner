@@ -1,30 +1,9 @@
-// import sharp from "sharp"
 import { config } from "./config"
-// import { lookupProduct } from "./lookupProduct"
-// import { serialScannerReader } from "./serialScannerReader"
+import { serialScannerReader } from "./serialScannerReader"
 import { anylistLogin } from "./anylistLogin"
 import { AnylistClient } from "./anylistClient"
 import { lookupProduct } from "./lookupProduct"
 import sharp from "sharp"
-// import fs from "fs"
-
-// const main = async () => {
-//   const bring = new Bring({ mail: config.BRING_EMAIL, password: config.BRING_PASSWORD })
-
-//   await bring.login()
-
-//   // @ts-expect-error
-//   const port = serialScannerReader("/dev/scanner", async (eanCode) => {
-//     console.log(`EAN code scanned: ${eanCode}`)
-//     await addItem(bring, eanCode)
-//   })
-
-//   console.log("Ready to scan!")
-
-//   // Keep the script running until it is killed
-//   process.stdin.resume()
-//   process.stdin.on("data", () => {})
-// }
 
 const resizeAndUploadImage = async (client: AnylistClient, imageUrl: string): Promise<string> => {
   console.log(`${imageUrl}`)
@@ -88,7 +67,17 @@ const main = async () => {
     { email: config.ANYLIST_EMAIL, password: config.ANYLIST_PASSWORD },
     { endpoint: config.ANYLIST_ENDPOINT ?? "https://www.anylist.com/" }
   )
-  await handleItem(client, "6920075776096")
+
+  const port = serialScannerReader("/dev/scanner", async (eanCode) => {
+    console.log(`EAN code scanned: ${eanCode}`)
+    await handleItem(client, eanCode)
+  })
+
+  console.log("Ready to scan!")
+
+  // Keep the script running until it is killed
+  process.stdin.resume()
+  process.stdin.on("data", () => {})
 }
 
 main()
