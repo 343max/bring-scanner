@@ -3,7 +3,7 @@ import { googleCustomSearchResponse } from "./googleCustomSearchResponse"
 
 type GoogleCustomSearchResponse = {
   name: string
-  image?: string
+  image: string | undefined
 }
 
 export const googleCustomSearch = async (EAN: string): Promise<GoogleCustomSearchResponse[]> => {
