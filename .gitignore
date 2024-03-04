@@ -1,3 +1,7 @@
+# dir for stuff generated during post install
+
+/src/generated
+
 # Based on https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore
 
 # Logs
