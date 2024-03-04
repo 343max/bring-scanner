@@ -79,21 +79,23 @@ const handleItem = async (client: AnylistClient, eanCode: string) => {
   }
 }
 
-const main = async () => {
-  const client = await anylistLogin(
+const getClient = async () => {
+  return await anylistLogin(
     { email: config.ANYLIST_EMAIL, password: config.ANYLIST_PASSWORD },
     { endpoint: config.ANYLIST_ENDPOINT ?? "https://www.anylist.com/" }
   )
+}
 
+const main = async () => {
   if (typeof config.TEST_EANS === "string" && config.TEST_EANS.length > 0) {
     for (const eanCode of config.TEST_EANS.split(",")) {
       console.log(`Test EAN code: ${eanCode}`)
-      await handleItem(client, eanCode.trim())
+      await handleItem(await getClient(), eanCode.trim())
     }
   } else {
     serialScannerReader("/dev/scanner", async (eanCode) => {
       console.log(`EAN code scanned: ${eanCode}`)
-      await handleItem(client, eanCode)
+      await handleItem(await getClient(), eanCode)
     })
 
     console.log("Ready to scan!")
