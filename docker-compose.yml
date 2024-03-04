@@ -1,0 +1,20 @@
+version: "3"
+services:
+  grocery-scanner:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    devices:
+      - ${SCANNER_DEV}:/dev/scanner
+    environment:
+      - ANYLIST_EMAIL=${ANYLIST_EMAIL}
+      - ANYLIST_PASSWORD=${ANYLIST_PASSWORD}
+      - ANYLIST_NEW_ITEMS_LIST=${ANYLIST_NEW_ITEMS_LIST}
+      - ANYLIST_NEW_UNKNOWN_ITEM_NAME=${ANYLIST_NEW_UNKNOWN_ITEM_NAME}
+      - BARCODELOOKUP_API_KEY=${BARCODELOOKUP_API_KEY}
+      - SCANNER_DELIMITER=${SCANNER_DELIMITER}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GOOGLE_CX=${GOOGLE_CX}
+      - SCANNER_DEV=/dev/scanner

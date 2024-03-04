@@ -90,7 +90,7 @@ const main = async () => {
       await handleItem(client, eanCode.trim())
     }
   } else {
-    const port = serialScannerReader("/dev/scanner", async (eanCode) => {
+    serialScannerReader("/dev/scanner", async (eanCode) => {
       console.log(`EAN code scanned: ${eanCode}`)
       await handleItem(client, eanCode)
     })
@@ -100,8 +100,6 @@ const main = async () => {
     // Keep the script running until it is killed
     process.stdin.resume()
     process.stdin.on("data", () => {})
-
-    console.log("hanging on to", port)
   }
 }
 
