@@ -64,8 +64,9 @@ const handleItem = async (client: AnylistClient, eanCode: string) => {
       }
     } else {
       console.log(`Found product: ${lookup.title}`)
+      const name = lookup.manufacturer ? `${lookup.title} (${lookup.manufacturer})` : lookup.title
       const itemId = await client.addItem(listId, {
-        name: `${lookup.title} (${lookup.manufacturer})`,
+        name,
         details: `${lookup.description} EAN:${eanCode}`,
       })
 
