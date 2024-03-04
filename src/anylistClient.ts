@@ -102,7 +102,7 @@ export const anylistClient = async (
 
       const encodedOperationList = pcov.proto.PBListOperationList.encode(operationList).finish()
 
-      const response = await fetch(`${endpoint}data/shopping-lists/update`, {
+      await fetch(`${endpoint}data/shopping-lists/update`, {
         method: "POST",
         headers,
         body: operationsFormData(new Blob([encodedOperationList])),

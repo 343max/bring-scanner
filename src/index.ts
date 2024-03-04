@@ -4,9 +4,9 @@ import { anylistLogin } from "./anylistLogin"
 import { AnylistClient } from "./anylistClient"
 import { lookupProduct } from "./lookupProduct"
 import sharp from "sharp"
+import { googleCustomSearch } from "./googleCustomSearch"
 
 const resizeAndUploadImage = async (client: AnylistClient, imageUrl: string): Promise<string> => {
-  console.log(`${imageUrl}`)
   const response = await fetch(imageUrl)
   const originalBlob = await response.blob()
   const buffer = await sharp(await originalBlob.arrayBuffer())
@@ -41,11 +41,27 @@ const handleItem = async (client: AnylistClient, eanCode: string) => {
     console.log(`Adding new product to the shopping list`)
     const lookup = await lookupProduct(eanCode)
     if (lookup === null) {
-      console.log(`Could not find product with EAN code ${eanCode}. Adding as unknonw product`)
-      await client.addItem(listId, {
-        name: "New Product",
-        details: `EAN:${eanCode} https://www.google.com/search?q=${eanCode}`,
-      })
+      console.log(`Could not find product with EAN code ${eanCode}. Searching with google`)
+      const googleResult = (await googleCustomSearch(eanCode))[0]
+      if (googleResult !== undefined) {
+        console.log(`Found product on google: ${googleResult.name}`)
+        const itemId = await client.addItem(listId, {
+          name: `${googleResult.name}`,
+          details: `EAN:${eanCode}`,
+        })
+
+        if (googleResult.image) {
+          console.log(`Uploading image for ${eanCode}`)
+          const imageId = await resizeAndUploadImage(client, googleResult.image)
+          await client.updateImage(listId, itemId, imageId)
+        }
+      } else {
+        console.log(`Could not find product with EAN code ${eanCode}. Adding as unknonw product`)
+        await client.addItem(listId, {
+          name: "New Product",
+          details: `EAN:${eanCode} https://www.google.com/search?q=${eanCode}`,
+        })
+      }
     } else {
       console.log(`Found product: ${lookup.title}`)
       const itemId = await client.addItem(listId, {
@@ -68,16 +84,25 @@ const main = async () => {
     { endpoint: config.ANYLIST_ENDPOINT ?? "https://www.anylist.com/" }
   )
 
-  const port = serialScannerReader("/dev/scanner", async (eanCode) => {
-    console.log(`EAN code scanned: ${eanCode}`)
-    await handleItem(client, eanCode)
-  })
+  if (typeof config.TEST_EANS === "string" && config.TEST_EANS.length > 0) {
+    for (const eanCode of config.TEST_EANS.split(",")) {
+      console.log(`Test EAN code: ${eanCode}`)
+      await handleItem(client, eanCode.trim())
+    }
+  } else {
+    const port = serialScannerReader("/dev/scanner", async (eanCode) => {
+      console.log(`EAN code scanned: ${eanCode}`)
+      await handleItem(client, eanCode)
+    })
 
-  console.log("Ready to scan!")
+    console.log("Ready to scan!")
 
-  // Keep the script running until it is killed
-  process.stdin.resume()
-  process.stdin.on("data", () => {})
+    // Keep the script running until it is killed
+    process.stdin.resume()
+    process.stdin.on("data", () => {})
+
+    console.log("hanging on to", port)
+  }
 }
 
 main()
