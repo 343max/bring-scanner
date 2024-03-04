@@ -1,7 +1,7 @@
 import { pcov } from "./generated/anylist"
 import * as uuid from "uuid"
 
-export type AnylistClinet = Awaited<ReturnType<typeof anylistClient>>
+export type AnylistClient = Awaited<ReturnType<typeof anylistClient>>
 
 const miniUuid = () => uuid.v4().replace(/-/g, "")
 
@@ -53,9 +53,13 @@ export const anylistClient = async (
   }
 
   return {
-    allItems: async (): Promise<pcov.proto.IListItem[]> => {
+    newLists: async (): Promise<pcov.proto.IShoppingList[]> => {
       const userData = await getUserData()
-      return userData.shoppingListsResponse?.newLists?.map((list) => list.items ?? []).flat() ?? []
+      return userData.shoppingListsResponse?.newLists ?? []
+    },
+    getCategories: async (): Promise<pcov.proto.IPBUserCategory[]> => {
+      const userData = await getUserData()
+      return userData.userCategoriesResponse?.categories ?? []
     },
     setListItemChecked: async (listId: string, itemId: string, checked: boolean) => {
       const operation = new pcov.proto.PBListOperation({
@@ -75,14 +79,30 @@ export const anylistClient = async (
         body: operationsFormData(new Blob([encodedOperationList])),
       })
     },
-    addItem: async (listId: string, eanCode: string) => {
+    addItem: async (listId: string, item: Omit<pcov.proto.IListItem, "identifier">) => {
       const itemId = miniUuid()
 
-      const operation = new pcov.proto.PBListOperation({})
-      operation.metadata = opertationMetadata("add-shopping-list-item")
-      operation.listId = listId
-      operation.listItemId = listId
-      // operation.listItem = new pcov.proto.ListItem({})
+      const operation = new pcov.proto.PBListOperation({
+        metadata: opertationMetadata("add-shopping-list-item"),
+        listId: listId,
+        listItemId: itemId,
+        listItem: new pcov.proto.ListItem({
+          identifier: itemId,
+          userId,
+          listId: listId,
+          ...item,
+        }),
+      })
+
+      const operationList = new pcov.proto.PBListOperationList({ operations: [operation] })
+
+      const encodedOperationList = pcov.proto.PBListOperationList.encode(operationList).finish()
+
+      const response = await fetch(`${endpoint}data/shopping-lists/update`, {
+        method: "POST",
+        headers,
+        body: operationsFormData(new Blob([encodedOperationList])),
+      })
     },
 
     uploadImage: async (image: Blob): Promise<string> => {
