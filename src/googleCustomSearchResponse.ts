@@ -7,7 +7,7 @@ export const googleCustomSearchResponse = z.object({
         product: z
           .array(
             z.object({
-              image: z.string(),
+              image: z.string().optional(),
               name: z.string(),
             })
           )
