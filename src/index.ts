@@ -5,6 +5,7 @@ import { AnylistClient } from "./anylistClient"
 import { lookupProduct } from "./lookupProduct"
 import sharp from "sharp"
 import { googleCustomSearch } from "./googleCustomSearch"
+import { googleResponseFindProduct } from "./googleCustomSearchResponse"
 
 const resizeAndUploadImage = async (client: AnylistClient, imageUrl: string): Promise<string> => {
   const response = await fetch(imageUrl)
@@ -42,8 +43,8 @@ const handleItem = async (client: AnylistClient, eanCode: string) => {
     const lookup = await lookupProduct(eanCode)
     if (lookup === null) {
       console.log(`Could not find product with EAN code ${eanCode}. Searching with google`)
-      const googleResult = (await googleCustomSearch(eanCode))[0]
-      if (googleResult !== undefined) {
+      const googleResult = googleResponseFindProduct(await googleCustomSearch(eanCode))
+      if (googleResult !== null) {
         console.log(`Found product on google: ${googleResult.name}`)
         const itemId = await client.addItem(listId, {
           name: `${googleResult.name}`,
