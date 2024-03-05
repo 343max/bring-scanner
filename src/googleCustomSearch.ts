@@ -16,16 +16,18 @@ export const googleCustomSearch = async (EAN: string): Promise<GoogleCustomSearc
   )
 
   const json = await response.json()
-  return googleCustomSearchResponse
-    .parse(json)
-    .items.filter((item) => item.pagemap?.product)
-    .map((item) => {
-      return item.pagemap?.product?.map((product) => {
-        return {
-          image: product.image,
-          name: product.name,
-        }
+  return (
+    googleCustomSearchResponse
+      .parse(json)
+      .items?.filter((item) => item.pagemap?.product)
+      .map((item) => {
+        return item.pagemap?.product?.map((product) => {
+          return {
+            image: product.image,
+            name: product.name,
+          }
+        })
       })
-    })
-    .flatMap((x) => x ?? [])
+      .flatMap((x) => x ?? []) ?? []
+  )
 }
