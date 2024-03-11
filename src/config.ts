@@ -44,7 +44,7 @@ const ConfigSchema = z.object({
   ANYLIST_NEW_ITEMS_LIST: z.string(),
   ANYLIST_NEW_UNKNOWN_ITEM_NAME: z.string(),
 
-  BARCODELOOKUP_API_KEY: z.string(),
+  OPEN_FOOD_FACTS_LANGUAGE: z.string(),
 
   SCANNER_DELIMITER: z.union([z.literal("\r"), z.literal("\n"), z.literal("\r\n")]),
 

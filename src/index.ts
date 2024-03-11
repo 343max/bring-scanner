@@ -2,10 +2,11 @@ import { config } from "./config"
 import { serialScannerReader } from "./serialScannerReader"
 import { anylistLogin } from "./anylistLogin"
 import { AnylistClient } from "./anylistClient"
-import { lookupProduct } from "./lookupProduct"
 import sharp from "sharp"
 import { googleCustomSearch } from "./googleCustomSearch"
 import { googleResponseFindProduct } from "./googleCustomSearchResponse"
+import { lookupProduct } from "./openFoodFacts/lookupProduct"
+import { ProductSchema, getProductImage, getProductName } from "./openFoodFacts/product"
 
 const resizeAndUploadImage = async (client: AnylistClient, imageUrl: string): Promise<string> => {
   const response = await fetch(imageUrl)
@@ -40,7 +41,13 @@ const handleItem = async (client: AnylistClient, eanCode: string) => {
     }
   } else {
     console.log(`Adding new product to the shopping list`)
-    const lookup = await lookupProduct(eanCode)
+    var lookup: ProductSchema | null = null
+    try {
+      lookup = await lookupProduct(eanCode)
+    } catch (e) {
+      console.error(`Error looking up https://world.openfoodfacts.org/api/v0/product/${eanCode}.json`)
+      console.error(e)
+    }
     if (lookup === null) {
       console.log(`Could not find product with EAN code ${eanCode}. Searching with google`)
       const googleResult = googleResponseFindProduct(await googleCustomSearch(eanCode))
@@ -64,16 +71,18 @@ const handleItem = async (client: AnylistClient, eanCode: string) => {
         })
       }
     } else {
-      console.log(`Found product: ${lookup.title}`)
-      const name = lookup.manufacturer ? `${lookup.title} (${lookup.manufacturer})` : lookup.title
+      const name = getProductName(lookup, config.OPEN_FOOD_FACTS_LANGUAGE)
+      console.log(`Found product: ${name}`)
       const itemId = await client.addItem(listId, {
         name,
-        details: `${lookup.description} EAN:${eanCode}`,
+        details: `https://world.openfoodfacts.org/product/${eanCode} EAN:${eanCode}`,
       })
 
-      if (lookup.images[0]) {
+      const image = getProductImage(lookup, "front", "display", config.OPEN_FOOD_FACTS_LANGUAGE)
+
+      if (image) {
         console.log(`Uploading image for ${eanCode}`)
-        const imageId = await resizeAndUploadImage(client, lookup.images[0])
+        const imageId = await resizeAndUploadImage(client, image)
         await client.updateImage(listId, itemId, imageId)
       }
     }
